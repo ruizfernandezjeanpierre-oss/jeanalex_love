@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>El Reino de Naomi 💖</title>
+<title>El Universo de Naomi 💖</title>
 <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
 body{
-margin:0;
+background: radial-gradient(circle at top,#1e1b4b,#0f172a);
 overflow:hidden;
-background:black;
-font-family:'Courier New', monospace;
 }
 
-/* Fondo estrellas */
+/* Estrellas */
 .star{
 position:absolute;
 width:2px;
@@ -21,194 +20,172 @@ height:2px;
 background:white;
 animation:fall linear infinite;
 }
+
 @keyframes fall{
-from{transform:translateY(-10px);}
-to{transform:translateY(100vh);}
+from{transform:translateY(-10px);opacity:1;}
+to{transform:translateY(100vh);opacity:0;}
 }
 
-/* Canvas responsive */
-canvas{
-display:block;
-margin:0 auto;
-max-width:100vw;
-max-height:100vh;
-background:#111;
-}
-
-/* Corazones flotando */
+/* Corazones */
 .heart{
 position:absolute;
 color:pink;
-font-size:20px;
-animation:float 4s linear infinite;
+font-size:18px;
+animation:float 6s linear infinite;
 }
+
 @keyframes float{
 0%{transform:translateY(0);opacity:1;}
 100%{transform:translateY(-200px);opacity:0;}
 }
+
+.fade{
+animation:fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1; transform:translateY(0);}
+}
 </style>
 </head>
-<body>
 
-<div id="startScreen" class="absolute inset-0 flex flex-col justify-center items-center bg-black text-white text-center">
-<h1 class="text-3xl md:text-5xl mb-6 animate-pulse">🌸 El Reino de Naomi 🌸</h1>
-<button onclick="startGame()" class="bg-pink-500 px-6 py-3 rounded-xl text-xl hover:scale-110 transition">Entrar al cuento</button>
+<body class="flex items-center justify-center min-h-screen text-white p-4">
+
+<div id="app" class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center transition-all duration-500">
+
+<h1 class="text-3xl md:text-4xl text-pink-400 mb-6">🌸 Mi Princesa Naomi 🌸</h1>
+
+<div id="content" class="space-y-4 fade">
+
+<p class="text-lg">Hola mi niña hermosa 💖</p>
+
+<button onclick="start()" 
+class="bg-pink-500 hover:scale-110 transition px-6 py-3 rounded-xl shadow-lg">
+Entrar al cuento ✨
+</button>
+
 </div>
-
-<canvas id="game"></canvas>
-
-<div id="storyBox" class="hidden absolute bottom-0 w-full bg-black bg-opacity-80 text-pink-300 p-4 text-sm md:text-lg"></div>
-
-<div id="credits" class="hidden absolute inset-0 flex flex-col justify-center items-center bg-black text-white text-center p-6">
-<h2 class="text-3xl mb-4">Gracias por jugar mi princesa 💖</h2>
-<p class="mb-4">Desde el día que estamos juntos, mi niña, mi bebé, mi amorcita…</p>
-<p class="mb-6">Este juego es pequeño comparado con lo que siento por ti.</p>
-<h3 class="text-4xl text-pink-400 animate-pulse">¿Te casarías conmigo? 💍</h3>
 </div>
 
 <script>
-/* ESTRELLAS */
+
+/* 🌌 Estrellas */
 for(let i=0;i<80;i++){
 let star=document.createElement("div");
 star.className="star";
 star.style.left=Math.random()*100+"vw";
-star.style.animationDuration=(2+Math.random()*5)+"s";
+star.style.animationDuration=(3+Math.random()*5)+"s";
 document.body.appendChild(star);
 }
 
-/* VARIABLES */
-let canvas=document.getElementById("game");
-let ctx=canvas.getContext("2d");
-
-function resize(){
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+/* 💖 Corazones flotando */
+function spawnHeart(){
+let heart=document.createElement("div");
+heart.className="heart";
+heart.innerHTML="💖";
+heart.style.left=Math.random()*100+"vw";
+heart.style.bottom="0px";
+document.body.appendChild(heart);
+setTimeout(()=>heart.remove(),6000);
 }
-resize();
-window.addEventListener("resize",resize);
+setInterval(spawnHeart,2000);
 
-let player={
-x:100,
-y:100,
-size:32,
-speed:4
-};
+/* 📖 Generador de 50 cuentos */
 
-let hearts=[];
-let enemies=[];
-let level=1;
-let storiesCompleted=0;
-
-/* GENERAR CORAZONES */
-function spawnHearts(){
-for(let i=0;i<5+level;i++){
-hearts.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height
-});
-}
-}
-
-/* GENERAR ENEMIGOS */
-function spawnEnemies(){
-for(let i=0;i<level;i++){
-enemies.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-speed:1+level*0.3
-});
-}
-}
-
-/* CONTROLES */
-let keys={};
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
-
-/* MOVIMIENTO */
-function move(){
-if(keys["ArrowUp"])player.y-=player.speed;
-if(keys["ArrowDown"])player.y+=player.speed;
-if(keys["ArrowLeft"])player.x-=player.speed;
-if(keys["ArrowRight"])player.x+=player.speed;
-}
-
-/* COLISION */
-function collide(a,b){
-return(
-a.x<a.size+b.x &&
-a.x+a.size>b.x &&
-a.y<a.size+b.y &&
-a.y+a.size>b.y
-);
-}
-
-/* CUENTO AUTO GENERADO */
-function generateStory(){
-let frases=[
-"En un reino mágico, Naomi iluminaba todo con sus ojos hermosos.",
-"Mi princesa Naomi transformaba la oscuridad en estrellas.",
-"Mi niña valiente derrotaba sombras con amor.",
-"Mi bebé hermosa convertía el miedo en esperanza."
+const inicios=[
+"En un reino donde las estrellas susurraban",
+"En un bosque mágico iluminado por la luna",
+"En un universo paralelo lleno de luz",
+"En un castillo flotante entre nubes rosas",
+"En un jardín secreto lleno de flores eternas"
 ];
-return frases[Math.floor(Math.random()*frases.length)]
-+" Y juntos vivieron un San Valentín eterno lleno de amor 💖";
+
+const protagonistas=[
+"vivía Naomi, la princesa de ojos más hermosos",
+"existía mi niña valiente de mirada brillante",
+"brillaba mi amorcita con sonrisa encantadora",
+"reinaba mi bebé hermosa llena de ternura",
+"caminaba la princesa Naomi iluminando todo"
+];
+
+const conflictos=[
+"que tenía el poder de convertir tristeza en luz",
+"que derrotaba sombras con solo sonreír",
+"que transformaba el miedo en esperanza",
+"que llenaba el cielo de estrellas nuevas",
+"que hacía florecer corazones apagados"
+];
+
+const finales=[
+"Y juntos celebraron un San Valentín eterno lleno de amor 💖",
+"Y el universo decidió que su historia sería infinita ✨",
+"Y cada día fue más mágico que el anterior 🌸",
+"Y las estrellas prometieron proteger su amor 💫",
+"Y su historia se convirtió en la más bonita jamás contada 💞"
+];
+
+function generateStory(){
+let story=
+inicios[Math.floor(Math.random()*inicios.length)]+" "+
+protagonistas[Math.floor(Math.random()*protagonistas.length)]+" "+
+conflictos[Math.floor(Math.random()*conflictos.length)]+". "+
+finales[Math.floor(Math.random()*finales.length)];
+
+return story;
 }
 
-/* LOOP */
-function update(){
-move();
+let step=0;
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-ctx.fillStyle="pink";
-ctx.fillRect(player.x,player.y,player.size,player.size);
-
-/* DIBUJAR CORAZONES */
-ctx.fillStyle="red";
-hearts.forEach((h,i)=>{
-ctx.fillRect(h.x,h.y,20,20);
-if(collide(player,{x:h.x,y:h.y,size:20})){
-hearts.splice(i,1);
-}
-});
-
-/* ENEMIGOS */
-ctx.fillStyle="purple";
-enemies.forEach(e=>{
-e.x+=(player.x-e.x)*0.002*e.speed;
-e.y+=(player.y-e.y)*0.002*e.speed;
-ctx.fillRect(e.x,e.y,30,30);
-});
-
-/* NIVEL COMPLETADO */
-if(hearts.length===0){
-storiesCompleted++;
-document.getElementById("storyBox").classList.remove("hidden");
-document.getElementById("storyBox").innerText=generateStory();
-setTimeout(()=>{
-document.getElementById("storyBox").classList.add("hidden");
-level++;
-spawnHearts();
-spawnEnemies();
-},4000);
-
-if(level===5){
-document.getElementById("credits").classList.remove("hidden");
-return;
-}
+function start(){
+next();
 }
 
-requestAnimationFrame(update);
+function next(){
+step++;
+const content=document.getElementById("content");
+
+if(step===1){
+content.innerHTML=`
+<p class="fade text-lg">Antes de empezar...</p>
+<p>¿Quieres escuchar un cuento mágico? ✨</p>
+<div class="flex justify-center gap-4 mt-4">
+<button onclick="next()" class="bg-green-500 px-4 py-2 rounded-xl hover:scale-110 transition">Sí 💖</button>
+<button onclick="alert('Respuesta incorrecta 😌💖')" class="bg-red-500 px-4 py-2 rounded-xl">No 😳</button>
+</div>
+`;
 }
 
-/* INICIO */
-function startGame(){
-document.getElementById("startScreen").classList.add("hidden");
-spawnHearts();
-spawnEnemies();
-update();
+else if(step===2){
+let story=generateStory();
+content.innerHTML=`
+<p class="fade text-pink-300">${story}</p>
+<button onclick="newStory()" class="bg-pink-500 px-4 py-2 rounded-xl mt-4 hover:scale-110 transition">
+Otro cuento 💌
+</button>
+<button onclick="next()" class="bg-purple-500 px-4 py-2 rounded-xl mt-2 hover:scale-110 transition">
+Seguir 🌙
+</button>
+`;
 }
+
+else if(step===3){
+content.innerHTML=`
+<p class="fade text-xl">Mi princesa Naomi...</p>
+<p>Tus ojos iluminan mi mundo 🌟</p>
+<p>Tu sonrisa es mi lugar seguro 💖</p>
+<p>Y cada día contigo es mi cuento favorito 📖</p>
+<p class="mt-4 text-pink-400 animate-pulse">
+Feliz San Valentín mi niña hermosa 💞
+</p>
+`;
+}
+}
+
+function newStory(){
+document.querySelector("#content p").innerText=generateStory();
+}
+
 </script>
 
 </body>
