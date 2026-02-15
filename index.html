@@ -1,1 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Para Ti ❤️</title>
+<style>
+body{
+    margin:0;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    font-family: Arial, sans-serif;
+    color:white;
+    text-align:center;
+}
+.container{
+    animation: fadeIn 2s ease-in-out;
+}
+button{
+    padding:15px 30px;
+    border:none;
+    border-radius:30px;
+    font-size:18px;
+    cursor:pointer;
+    background:white;
+    color:#ff4d6d;
+    transition:0.3s;
+}
+button:hover{
+    transform:scale(1.1);
+}
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+.hidden{
+    display:none;
+    margin-top:20px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Para la dueña de mi corazón ❤️</h1>
+    <p>Haz clic abajo...</p>
+    <button onclick="mostrarMensaje()">Haz clic aquí</button>
+    <div id="mensaje" class="hidden">
+        <h2>Feliz 14 de Febrero 💕</h2>
+        <p>Aunque no esté contigo físicamente, mi corazón siempre está contigo.</p>
+        <p>Gracias por existir en mi vida.</p>
+    </div>
+</div>
+
+<script>
+function mostrarMensaje(){
+    document.getElementById("mensaje").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
 
