@@ -8,7 +8,7 @@
 body{
 margin:0;
 overflow:hidden;
-background:linear-gradient(to bottom,#0f172a,#020617);
+background:linear-gradient(to bottom,#0a0f2c,#000814);
 font-family:monospace;
 }
 canvas{
@@ -31,6 +31,7 @@ button{
 background:#ec4899;
 padding:12px 24px;
 border-radius:30px;
+font-weight:bold;
 }
 </style>
 </head>
@@ -56,18 +57,22 @@ canvas.height=window.innerHeight;
 resize();
 window.addEventListener("resize",resize);
 
-/* 👑 Sprite FUNCIONAL */
-const sprite=new Image();
-sprite.src="https://raw.githubusercontent.com/jlongster/canvas-game-bootstrap/master/assets/player.png";
+/* 🌌 Estrellas fondo */
+let stars=[];
+for(let i=0;i<200;i++){
+stars.push({
+x:Math.random()*2000,
+y:Math.random()*2000,
+size:Math.random()*2
+});
+}
 
-let frame=0;
-let frameTimer=0;
-
+/* 👑 Player */
 let player={
-x:200,
-y:200,
-size:64,
-speed:4
+x:300,
+y:300,
+size:40,
+speed:5
 };
 
 let camera={x:0,y:0};
@@ -76,12 +81,14 @@ let keys={};
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
+/* 👤 Enemigos */
 let enemies=[
-{x:600,y:300},
-{x:900,y:500}
+{x:600,y:500},
+{x:900,y:700}
 ];
 
-let castle={x:1400,y:400};
+/* 🏰 Castillo */
+let castle={x:1500,y:900};
 
 function startGame(){
 document.getElementById("startScreen").style.display="none";
@@ -105,15 +112,6 @@ if(keys["ArrowDown"])player.y+=player.speed;
 camera.x=player.x-canvas.width/2;
 camera.y=player.y-canvas.height/2;
 
-/* Animación */
-if(keys["ArrowLeft"]||keys["ArrowRight"]||keys["ArrowUp"]||keys["ArrowDown"]){
-frameTimer++;
-if(frameTimer>10){
-frame=(frame+1)%4;
-frameTimer=0;
-}
-}
-
 /* Colisión enemigos */
 enemies.forEach(e=>{
 if(Math.abs(player.x-e.x)<40 && Math.abs(player.y-e.y)<40){
@@ -123,7 +121,7 @@ alert("Tu luz es más fuerte que cualquier sombra 💖");
 
 /* Castillo */
 if(Math.abs(player.x-castle.x)<60 && Math.abs(player.y-castle.y)<60){
-alert("Naomi… ¿Te casarías conmigo? 💍");
+final();
 }
 
 }
@@ -131,35 +129,62 @@ alert("Naomi… ¿Te casarías conmigo? 💍");
 function draw(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-/* Fondo estrellas */
-for(let i=0;i<100;i++){
-ctx.fillStyle="white";
-ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,1,1);
-}
+/* Fondo */
+ctx.fillStyle="#0a0f2c";
+ctx.fillRect(0,0,canvas.width,canvas.height);
 
-/* Player */
-if(sprite.complete){
-ctx.drawImage(sprite,
-frame*32,0,32,32,
+/* Estrellas */
+ctx.fillStyle="white";
+stars.forEach(s=>{
+ctx.fillRect(
+s.x-camera.x,
+s.y-camera.y,
+s.size,
+s.size
+);
+});
+
+/* Jugador (princesa pixel simple) */
+ctx.fillStyle="#ff69b4";
+ctx.fillRect(
 player.x-camera.x,
 player.y-camera.y,
 player.size,
-player.size);
-}else{
-ctx.fillStyle="pink";
-ctx.fillRect(player.x-camera.x,player.y-camera.y,player.size,player.size);
-}
+player.size
+);
+
+/* Corona */
+ctx.fillStyle="gold";
+ctx.fillRect(
+player.x-camera.x+10,
+player.y-camera.y-10,
+20,
+10
+);
 
 /* Enemigos */
 ctx.fillStyle="black";
 enemies.forEach(e=>{
-ctx.fillRect(e.x-camera.x,e.y-camera.y,40,40);
+ctx.fillRect(
+e.x-camera.x,
+e.y-camera.y,
+40,
+40
+);
 });
 
 /* Castillo */
 ctx.fillStyle="purple";
-ctx.fillRect(castle.x-camera.x,castle.y-camera.y,80,80);
+ctx.fillRect(
+castle.x-camera.x,
+castle.y-camera.y,
+80,
+80
+);
+}
 
+function final(){
+alert("Naomi… 💖\n\nHas llegado al castillo.\n\nMi princesa...\n¿Te casarías conmigo? 💍");
 }
 
 </script>
