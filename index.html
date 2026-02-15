@@ -8,31 +8,24 @@
 body{
 margin:0;
 overflow:hidden;
-background:black;
+background:linear-gradient(to bottom,#0f172a,#020617);
 font-family:monospace;
 }
 canvas{
 display:block;
-margin:auto;
-background:#0f172a;
+margin:0 auto;
 image-rendering:pixelated;
 }
-
-/* Pantalla inicio */
 #startScreen{
-position:absolute;
+position:fixed;
 inset:0;
 display:flex;
 flex-direction:column;
-align-items:center;
 justify-content:center;
-background:linear-gradient(to bottom,#1e3a8a,#000);
+align-items:center;
+background:radial-gradient(circle,#1e3a8a,#000);
 color:white;
-animation:fadeIn 2s ease;
-}
-@keyframes fadeIn{
-from{opacity:0;}
-to{opacity:1;}
+z-index:10;
 }
 button{
 background:#ec4899;
@@ -43,14 +36,10 @@ border-radius:30px;
 </head>
 <body>
 
-<!-- 🎵 Música -->
-<audio id="music1" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8f3fef8c5.mp3?filename=fairy-tale-110354.mp3"></audio>
-<audio id="music2" loop src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_3e7a8d28a1.mp3?filename=epic-quest-124841.mp3"></audio>
-
 <div id="startScreen">
-<h1 class="text-4xl mb-6">👑 El Reino de Naomi 👑</h1>
-<p class="mb-4">Un cuento jugable para mi niña hermosa 💖</p>
-<button onclick="startGame()">Comenzar aventura</button>
+<h1 class="text-4xl mb-4">👑 El Reino de Naomi 👑</h1>
+<p class="mb-6">Una aventura para mi princesa 💖</p>
+<button onclick="startGame()">Comenzar</button>
 </div>
 
 <canvas id="game"></canvas>
@@ -67,57 +56,38 @@ canvas.height=window.innerHeight;
 resize();
 window.addEventListener("resize",resize);
 
-/* 👑 Sprite sheet princesa */
+/* 👑 Sprite FUNCIONAL */
 const sprite=new Image();
-sprite.src="https://i.imgur.com/QZ6XW9S.png"; // sprite sheet ejemplo 4 frames caminar
+sprite.src="https://raw.githubusercontent.com/jlongster/canvas-game-bootstrap/master/assets/player.png";
 
 let frame=0;
 let frameTimer=0;
 
-/* 🎮 Player */
 let player={
-x:100,
-y:100,
+x:200,
+y:200,
 size:64,
 speed:4
 };
+
+let camera={x:0,y:0};
 
 let keys={};
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
-/* 👤 Enemigos sombra */
 let enemies=[
-{x:400,y:300},
-{x:700,y:200}
+{x:600,y:300},
+{x:900,y:500}
 ];
 
-/* 🏰 Castillo final */
-let castle={x:1200,y:400};
+let castle={x:1400,y:400};
 
-/* 🏆 Logros */
-let achievements=[];
-let level=1;
-
-/* 💾 Guardado */
-function save(){
-localStorage.setItem("naomi_level",level);
-localStorage.setItem("naomi_ach",JSON.stringify(achievements));
-}
-function load(){
-level=parseInt(localStorage.getItem("naomi_level"))||1;
-achievements=JSON.parse(localStorage.getItem("naomi_ach"))||[];
-}
-load();
-
-/* 🎬 Inicio */
 function startGame(){
 document.getElementById("startScreen").style.display="none";
-document.getElementById("music1").play();
-gameLoop();
+requestAnimationFrame(gameLoop);
 }
 
-/* 🔄 Game Loop */
 function gameLoop(){
 update();
 draw();
@@ -131,7 +101,11 @@ if(keys["ArrowRight"])player.x+=player.speed;
 if(keys["ArrowUp"])player.y-=player.speed;
 if(keys["ArrowDown"])player.y+=player.speed;
 
-/* Animación caminar */
+/* Cámara centrada */
+camera.x=player.x-canvas.width/2;
+camera.y=player.y-canvas.height/2;
+
+/* Animación */
 if(keys["ArrowLeft"]||keys["ArrowRight"]||keys["ArrowUp"]||keys["ArrowDown"]){
 frameTimer++;
 if(frameTimer>10){
@@ -143,16 +117,13 @@ frameTimer=0;
 /* Colisión enemigos */
 enemies.forEach(e=>{
 if(Math.abs(player.x-e.x)<40 && Math.abs(player.y-e.y)<40){
-alert("Una sombra intentó tocarte… pero tu luz es más fuerte 💖");
-if(!achievements.includes("luz")){
-achievements.push("luz");
-}
+alert("Tu luz es más fuerte que cualquier sombra 💖");
 }
 });
 
 /* Castillo */
-if(Math.abs(player.x-castle.x)<50 && Math.abs(player.y-castle.y)<50){
-finalEspecial();
+if(Math.abs(player.x-castle.x)<60 && Math.abs(player.y-castle.y)<60){
+alert("Naomi… ¿Te casarías conmigo? 💍");
 }
 
 }
@@ -160,42 +131,37 @@ finalEspecial();
 function draw(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-/* Jugador */
+/* Fondo estrellas */
+for(let i=0;i<100;i++){
+ctx.fillStyle="white";
+ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,1,1);
+}
+
+/* Player */
+if(sprite.complete){
 ctx.drawImage(sprite,
-frame*64,0,64,64,
-player.x,player.y,player.size,player.size);
+frame*32,0,32,32,
+player.x-camera.x,
+player.y-camera.y,
+player.size,
+player.size);
+}else{
+ctx.fillStyle="pink";
+ctx.fillRect(player.x-camera.x,player.y-camera.y,player.size,player.size);
+}
 
 /* Enemigos */
 ctx.fillStyle="black";
 enemies.forEach(e=>{
-ctx.fillRect(e.x,e.y,40,40);
+ctx.fillRect(e.x-camera.x,e.y-camera.y,40,40);
 });
 
 /* Castillo */
 ctx.fillStyle="purple";
-ctx.fillRect(castle.x,castle.y,80,80);
+ctx.fillRect(castle.x-camera.x,castle.y-camera.y,80,80);
 
-}
-
-/* 💍 Final */
-function finalEspecial(){
-document.getElementById("music1").pause();
-document.getElementById("music2").play();
-
-setTimeout(()=>{
-alert("Naomi… 💖\n\nHas llegado al final del reino.\n\nMi princesa…\n¿Te casarías conmigo? 💍");
-creditos();
-},500);
-}
-
-function creditos(){
-setTimeout(()=>{
-alert("Gracias por ser mi niña,\nmi bebé,\nmi amorcita.\n\nEres el mejor cuento que me pasó en la vida.");
-},1000);
-save();
 }
 
 </script>
-
 </body>
 </html>
