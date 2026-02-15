@@ -2,107 +2,184 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>El Reino de Naomi ✨</title>
+<title>El Mundo Mágico de Naomi ✨</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-body{
-    overflow:hidden;
+body{margin:0;overflow:hidden;background:black;}
+#gameCanvas{
+background:transparent;
+display:block;
+margin:auto;
+border:2px solid rgba(255,255,255,0.2);
 }
-.fade-in{
-    animation: fadeIn 1.5s ease-in-out;
+.star{
+position:absolute;
+width:2px;
+height:2px;
+background:white;
+animation:fall linear infinite;
 }
-@keyframes fadeIn{
-    from{opacity:0;}
-    to{opacity:1;}
+@keyframes fall{
+from{transform:translateY(-10px);}
+to{transform:translateY(100vh);}
 }
+.hidden{display:none;}
 </style>
 </head>
-<body class="bg-gradient-to-b from-purple-900 via-indigo-800 to-black text-white flex items-center justify-center h-screen">
+<body class="text-white">
 
-<div id="game" class="text-center fade-in">
+<audio id="music" autoplay loop>
+<source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8f3fef8c5.mp3?filename=fairy-tale-110354.mp3">
+</audio>
 
-    <h1 class="text-4xl font-bold mb-4">✨ El Reino de Naomi ✨</h1>
-    <p class="mb-6 text-lg">Presiona el botón y comienza un cuento mágico...</p>
+<div class="absolute top-2 left-4 text-sm">
+Nivel: <span id="level">1</span> 🔥 <br>
+Cuentos: <span id="cuentoCount">0</span> 📖 <br>
+Juntos desde: <span id="contador"></span> ❤️
+</div>
 
-    <button onclick="generarCuento()" 
-    class="bg-pink-500 hover:bg-pink-600 px-6 py-3 rounded-full text-lg shadow-lg transition">
-        Comenzar cuento 💖
-    </button>
+<canvas id="gameCanvas" width="800" height="500"></canvas>
 
-    <div id="cuento" class="mt-8 max-w-xl mx-auto text-lg leading-relaxed"></div>
+<div id="mensaje" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-center max-w-lg"></div>
 
-    <div id="final" class="mt-6 text-xl font-semibold text-pink-300"></div>
+<button id="hiddenBtn" class="hidden absolute top-20 right-10 bg-pink-500 px-4 py-2 rounded-full">
+💖 Botón Secreto
+</button>
 
+<!-- Controles táctiles -->
+<div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4 md:hidden">
+<button onclick="move('left')" class="bg-white text-black px-4 py-2 rounded">⬅</button>
+<button onclick="move('right')" class="bg-white text-black px-4 py-2 rounded">➡</button>
+<button onclick="move('up')" class="bg-white text-black px-4 py-2 rounded">⬆</button>
+<button onclick="move('down')" class="bg-white text-black px-4 py-2 rounded">⬇</button>
 </div>
 
 <script>
-
-const inicios = [
-"Había una vez una princesa llamada Naomi, cuyos ojos brillaban como estrellas...",
-"En un reino lejano vivía Naomi, mi niña hermosa, con la mirada más dulce del universo...",
-"Cuenta la leyenda que Naomi, mi princesa, iluminaba todo con sus ojos mágicos..."
-];
-
-const eventos = [
-"Una noche encontró una estrella caída del cielo.",
-"Descubrió un libro antiguo que solo se abría con amor verdadero.",
-"Escuchó un susurro del viento que decía su nombre."
-];
-
-const desenlaces = [
-"Y entendió que era especial porque alguien en el mundo la ama profundamente 💕",
-"Y descubrió que su brillo no venía del cielo, sino de su corazón hermoso ✨",
-"Y supo que siempre sería la protagonista del cuento de alguien que la adora 💖"
-];
-
-const finalesRomanticos = [
-"Te amo, mi niña 💗",
-"Eres mi princesa hermosa 👑",
-"Mi bebé, gracias por existir 🌸",
-"Mi amorcita, eres mi cuento favorito 📖💞"
-];
-
-function generarCuento(){
-
-let inicio = inicios[Math.floor(Math.random()*inicios.length)];
-let evento = eventos[Math.floor(Math.random()*eventos.length)];
-let desenlace = desenlaces[Math.floor(Math.random()*desenlaces.length)];
-let finalRom = finalesRomanticos[Math.floor(Math.random()*finalesRomanticos.length)];
-
-document.getElementById("cuento").innerHTML =
-inicio + "<br><br>" +
-evento + "<br><br>" +
-desenlace;
-
-document.getElementById("final").innerText = finalRom;
-
+/* 🌌 ESTRELLAS */
+for(let i=0;i<100;i++){
+let star=document.createElement("div");
+star.className="star";
+star.style.left=Math.random()*100+"vw";
+star.style.animationDuration=(Math.random()*5+5)+"s";
+star.style.opacity=Math.random();
+document.body.appendChild(star);
 }
 
-// 🥚 EASTER EGGS
+/* ❤️ CONTADOR */
+const startDate=new Date("2024-01-01");
+function updateCounter(){
+let now=new Date();
+let diff=Math.floor((now-startDate)/(1000*60*60*24));
+document.getElementById("contador").innerText=diff+" días";
+}
+updateCounter();
 
-let keys = "";
+/* 🎮 CANVAS */
+const canvas=document.getElementById("gameCanvas");
+const ctx=canvas.getContext("2d");
 
-document.addEventListener("keydown",function(e){
-    keys += e.key.toLowerCase();
+let player={x:50,y:50,size:20};
+let cuentos=0;
+let level=1;
+let ultraFinalShown=false;
 
-    if(keys.includes("naomi")){
-        alert("💎 Easter Egg: Naomi, tus ojos son mi lugar favorito.");
-        keys="";
-    }
+const bloques=[
+{x:300,y:200,size:40,type:"cuento"},
+{x:500,y:100,size:40,type:"mini"},
+{x:600,y:300,size:40,type:"secreto"}
+];
 
-    if(keys.includes("amor")){
-        alert("🥰 Te amo con todo mi corazón, mi princesa.");
-        keys="";
-    }
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    if(keys.includes("bebe")){
-        alert("🌸 Mi bebé hermosa, siempre voy a cuidarte.");
-        keys="";
-    }
+ctx.fillStyle="pink";
+ctx.fillRect(player.x,player.y,player.size,player.size);
+
+bloques.forEach(b=>{
+ctx.fillStyle=b.type==="cuento"?"purple":b.type==="mini"?"gold":"red";
+ctx.fillRect(b.x,b.y,b.size,b.size);
+});
+}
+
+function move(dir){
+if(dir==="left")player.x-=20;
+if(dir==="right")player.x+=20;
+if(dir==="up")player.y-=20;
+if(dir==="down")player.y+=20;
+checkCollision();
+draw();
+}
+
+document.addEventListener("keydown",e=>{
+if(e.key==="ArrowLeft")move("left");
+if(e.key==="ArrowRight")move("right");
+if(e.key==="ArrowUp")move("up");
+if(e.key==="ArrowDown")move("down");
 });
 
+/* 📖 CUENTOS */
+function generarCuento(){
+const frases=[
+"Naomi encontró una estrella que decía: mi princesa ✨",
+"Un libro mágico susurró: te amo mi niña 💖",
+"El viento cantó: mi bebé hermosa 🌸"
+];
+return frases[Math.floor(Math.random()*frases.length)];
+}
+
+/* 🎮 MINI JUEGO */
+function miniJuego(){
+let numero=Math.floor(Math.random()*5);
+let intento=prompt("Adivina un número del 0 al 4 💫");
+if(parseInt(intento)===numero){
+alert("Ganaste mi amorcita 💕");
+level++;
+}
+}
+
+/* 🗝 CÓDIGO SECRETO */
+function codigoSecreto(){
+let pass=prompt("Ingresa el código secreto:");
+if(pass==="miamor"){
+if(!ultraFinalShown){
+alert("💍 Final ultra especial: Naomi, eres el amor de mi vida.");
+ultraFinalShown=true;
+}else{
+alert("Ya descubriste el final especial 💖");
+}
+}
+}
+
+/* COLISIONES */
+function checkCollision(){
+bloques.forEach(b=>{
+if(player.x < b.x+b.size &&
+player.x+player.size > b.x &&
+player.y < b.y+b.size &&
+player.y+player.size > b.y){
+
+if(b.type==="cuento"){
+cuentos++;
+document.getElementById("cuentoCount").innerText=cuentos;
+document.getElementById("mensaje").innerText=generarCuento();
+if(cuentos>=5){
+document.getElementById("hiddenBtn").classList.remove("hidden");
+}
+}
+if(b.type==="mini") miniJuego();
+if(b.type==="secreto") codigoSecreto();
+
+}
+});
+document.getElementById("level").innerText=level;
+}
+
+/* 💖 BOTÓN SECRETO */
+document.getElementById("hiddenBtn").onclick=function(){
+alert("Easter especial: Mi amorcita hermosa, siempre contigo 💕");
+};
+draw();
 </script>
 
 </body>
 </html>
-
