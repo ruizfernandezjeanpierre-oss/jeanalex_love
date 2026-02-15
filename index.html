@@ -2,62 +2,105 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Para Ti ❤️</title>
+<title>El Reino de Naomi ✨</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
 body{
-    margin:0;
-    background: linear-gradient(135deg, #ff758c, #ff7eb3);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    font-family: Arial, sans-serif;
-    color:white;
-    text-align:center;
+    overflow:hidden;
 }
-.container{
-    animation: fadeIn 2s ease-in-out;
-}
-button{
-    padding:15px 30px;
-    border:none;
-    border-radius:30px;
-    font-size:18px;
-    cursor:pointer;
-    background:white;
-    color:#ff4d6d;
-    transition:0.3s;
-}
-button:hover{
-    transform:scale(1.1);
+.fade-in{
+    animation: fadeIn 1.5s ease-in-out;
 }
 @keyframes fadeIn{
     from{opacity:0;}
     to{opacity:1;}
 }
-.hidden{
-    display:none;
-    margin-top:20px;
-}
 </style>
 </head>
-<body>
+<body class="bg-gradient-to-b from-purple-900 via-indigo-800 to-black text-white flex items-center justify-center h-screen">
 
-<div class="container">
-    <h1>Para la dueña de mi corazón ❤️</h1>
-    <p>Haz clic abajo...</p>
-    <button onclick="mostrarMensaje()">Haz clic aquí</button>
-    <div id="mensaje" class="hidden">
-        <h2>Feliz 14 de Febrero 💕</h2>
-        <p>Aunque no esté contigo físicamente, mi corazón siempre está contigo.</p>
-        <p>Gracias por existir en mi vida.</p>
-    </div>
+<div id="game" class="text-center fade-in">
+
+    <h1 class="text-4xl font-bold mb-4">✨ El Reino de Naomi ✨</h1>
+    <p class="mb-6 text-lg">Presiona el botón y comienza un cuento mágico...</p>
+
+    <button onclick="generarCuento()" 
+    class="bg-pink-500 hover:bg-pink-600 px-6 py-3 rounded-full text-lg shadow-lg transition">
+        Comenzar cuento 💖
+    </button>
+
+    <div id="cuento" class="mt-8 max-w-xl mx-auto text-lg leading-relaxed"></div>
+
+    <div id="final" class="mt-6 text-xl font-semibold text-pink-300"></div>
+
 </div>
 
 <script>
-function mostrarMensaje(){
-    document.getElementById("mensaje").classList.remove("hidden");
+
+const inicios = [
+"Había una vez una princesa llamada Naomi, cuyos ojos brillaban como estrellas...",
+"En un reino lejano vivía Naomi, mi niña hermosa, con la mirada más dulce del universo...",
+"Cuenta la leyenda que Naomi, mi princesa, iluminaba todo con sus ojos mágicos..."
+];
+
+const eventos = [
+"Una noche encontró una estrella caída del cielo.",
+"Descubrió un libro antiguo que solo se abría con amor verdadero.",
+"Escuchó un susurro del viento que decía su nombre."
+];
+
+const desenlaces = [
+"Y entendió que era especial porque alguien en el mundo la ama profundamente 💕",
+"Y descubrió que su brillo no venía del cielo, sino de su corazón hermoso ✨",
+"Y supo que siempre sería la protagonista del cuento de alguien que la adora 💖"
+];
+
+const finalesRomanticos = [
+"Te amo, mi niña 💗",
+"Eres mi princesa hermosa 👑",
+"Mi bebé, gracias por existir 🌸",
+"Mi amorcita, eres mi cuento favorito 📖💞"
+];
+
+function generarCuento(){
+
+let inicio = inicios[Math.floor(Math.random()*inicios.length)];
+let evento = eventos[Math.floor(Math.random()*eventos.length)];
+let desenlace = desenlaces[Math.floor(Math.random()*desenlaces.length)];
+let finalRom = finalesRomanticos[Math.floor(Math.random()*finalesRomanticos.length)];
+
+document.getElementById("cuento").innerHTML =
+inicio + "<br><br>" +
+evento + "<br><br>" +
+desenlace;
+
+document.getElementById("final").innerText = finalRom;
+
 }
+
+// 🥚 EASTER EGGS
+
+let keys = "";
+
+document.addEventListener("keydown",function(e){
+    keys += e.key.toLowerCase();
+
+    if(keys.includes("naomi")){
+        alert("💎 Easter Egg: Naomi, tus ojos son mi lugar favorito.");
+        keys="";
+    }
+
+    if(keys.includes("amor")){
+        alert("🥰 Te amo con todo mi corazón, mi princesa.");
+        keys="";
+    }
+
+    if(keys.includes("bebe")){
+        alert("🌸 Mi bebé hermosa, siempre voy a cuidarte.");
+        keys="";
+    }
+});
+
 </script>
 
 </body>
