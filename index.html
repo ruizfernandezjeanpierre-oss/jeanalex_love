@@ -3,190 +3,260 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>El Universo de Naomi 💖</title>
+<title>El Libro Infinito de Naomi 💖</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body{
 background: radial-gradient(circle at top,#1e1b4b,#0f172a);
 overflow:hidden;
 }
-
-/* Estrellas */
-.star{
-position:absolute;
-width:2px;
-height:2px;
-background:white;
-animation:fall linear infinite;
+.page{
+animation: pageTurn 0.8s ease;
 }
-
-@keyframes fall{
-from{transform:translateY(-10px);opacity:1;}
-to{transform:translateY(100vh);opacity:0;}
+@keyframes pageTurn{
+from{transform: rotateY(-15deg); opacity:0;}
+to{transform: rotateY(0); opacity:1;}
 }
-
-/* Corazones */
-.heart{
-position:absolute;
-color:pink;
-font-size:18px;
-animation:float 6s linear infinite;
-}
-
-@keyframes float{
-0%{transform:translateY(0);opacity:1;}
-100%{transform:translateY(-200px);opacity:0;}
-}
-
-.fade{
-animation:fadeIn 0.8s ease-in-out;
-}
-
-@keyframes fadeIn{
-from{opacity:0; transform:translateY(20px);}
-to{opacity:1; transform:translateY(0);}
+.scroll{
+max-height:55vh;
+overflow-y:auto;
 }
 </style>
 </head>
 
 <body class="flex items-center justify-center min-h-screen text-white p-4">
 
-<div id="app" class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center transition-all duration-500">
+<div class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-3xl w-full text-center">
 
-<h1 class="text-3xl md:text-4xl text-pink-400 mb-6">🌸 Mi Princesa Naomi 🌸</h1>
+<h1 class="text-3xl text-pink-400 mb-6">
+📖 El Libro Infinito de Naomi
+</h1>
 
-<div id="content" class="space-y-4 fade">
-
-<p class="text-lg">Hola mi niña hermosa 💖</p>
-
-<button onclick="start()" 
-class="bg-pink-500 hover:scale-110 transition px-6 py-3 rounded-xl shadow-lg">
-Entrar al cuento ✨
-</button>
+<div id="content" class="space-y-4 page"></div>
 
 </div>
-</div>
+
+<!-- 🎵 Música -->
+<audio id="musicFeliz" loop src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8f3fef8c5.mp3"></audio>
+<audio id="musicSonadora" loop src="https://cdn.pixabay.com/audio/2022/10/25/audio_3e7a8d28a1.mp3"></audio>
+<audio id="musicTranquila" loop src="https://cdn.pixabay.com/audio/2022/11/03/audio_7f6a3e.mp3"></audio>
+<audio id="musicNostalgica" loop src="https://cdn.pixabay.com/audio/2022/08/04/audio_2c2f63.mp3"></audio>
 
 <script>
 
-/* 🌌 Estrellas */
-for(let i=0;i<80;i++){
-let star=document.createElement("div");
-star.className="star";
-star.style.left=Math.random()*100+"vw";
-star.style.animationDuration=(3+Math.random()*5)+"s";
-document.body.appendChild(star);
-}
-
-/* 💖 Corazones flotando */
-function spawnHeart(){
-let heart=document.createElement("div");
-heart.className="heart";
-heart.innerHTML="💖";
-heart.style.left=Math.random()*100+"vw";
-heart.style.bottom="0px";
-document.body.appendChild(heart);
-setTimeout(()=>heart.remove(),6000);
-}
-setInterval(spawnHeart,2000);
-
-/* 📖 Generador de 50 cuentos */
-
-const inicios=[
-"En un reino donde las estrellas susurraban",
-"En un bosque mágico iluminado por la luna",
-"En un universo paralelo lleno de luz",
-"En un castillo flotante entre nubes rosas",
-"En un jardín secreto lleno de flores eternas"
-];
-
-const protagonistas=[
-"vivía Naomi, la princesa de ojos más hermosos",
-"existía mi niña valiente de mirada brillante",
-"brillaba mi amorcita con sonrisa encantadora",
-"reinaba mi bebé hermosa llena de ternura",
-"caminaba la princesa Naomi iluminando todo"
-];
-
-const conflictos=[
-"que tenía el poder de convertir tristeza en luz",
-"que derrotaba sombras con solo sonreír",
-"que transformaba el miedo en esperanza",
-"que llenaba el cielo de estrellas nuevas",
-"que hacía florecer corazones apagados"
-];
-
-const finales=[
-"Y juntos celebraron un San Valentín eterno lleno de amor 💖",
-"Y el universo decidió que su historia sería infinita ✨",
-"Y cada día fue más mágico que el anterior 🌸",
-"Y las estrellas prometieron proteger su amor 💫",
-"Y su historia se convirtió en la más bonita jamás contada 💞"
-];
-
-function generateStory(){
-let story=
-inicios[Math.floor(Math.random()*inicios.length)]+" "+
-protagonistas[Math.floor(Math.random()*protagonistas.length)]+" "+
-conflictos[Math.floor(Math.random()*conflictos.length)]+". "+
-finales[Math.floor(Math.random()*finales.length)];
-
-return story;
-}
-
+const content=document.getElementById("content");
 let step=0;
+let answers={};
+let currentStory="";
 
-function start(){
-next();
-}
+/* =================== INICIO =================== */
+
+content.innerHTML=`
+<p>Este libro escribe historias según tu corazón 💖</p>
+<button onclick="next()" class="bg-pink-500 px-6 py-3 rounded-xl hover:scale-110 transition">
+Comenzar ✨
+</button>
+`;
+
+/* =================== FLUJO =================== */
 
 function next(){
 step++;
-const content=document.getElementById("content");
+content.classList.add("page");
 
-if(step===1){
+if(step===1) ask("¿Cómo te sientes hoy?",
+["feliz","soñadora","tranquila","nostalgica"],
+"mood");
+
+else if(step===2) ask("¿Qué escenario prefieres?",
+["estrellas","flores","mar","lluvia"],
+"place");
+
+else if(step===3) ask("¿Cómo es nuestro amor?",
+["eterno","intenso","dulce","magico"],
+"love");
+
+else if(step===4) generateStory();
+}
+
+function ask(text,options,key){
+let html=`<p>${text}</p><div class="grid gap-3 mt-4">`;
+options.forEach(o=>{
+html+=`<button onclick="save('${key}','${o}')" 
+class="bg-purple-500 p-2 rounded-xl hover:scale-110 transition">
+${o}
+</button>`;
+});
+html+="</div>";
+content.innerHTML=html;
+}
+
+function save(key,val){
+answers[key]=val;
+next();
+}
+
+/* =================== MÚSICA =================== */
+
+function playMusic(){
+document.querySelectorAll("audio").forEach(a=>a.pause());
+if(answers.mood==="feliz") musicFeliz.play();
+if(answers.mood==="soñadora") musicSonadora.play();
+if(answers.mood==="tranquila") musicTranquila.play();
+if(answers.mood==="nostalgica") musicNostalgica.play();
+}
+
+/* =================== GENERADOR =================== */
+
+function pick(arr){
+return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function generateStory(){
+
+playMusic();
+
+let cap1 = `
+Capítulo I – El Inicio
+
+${pick([
+"Todo comenzó con un suspiro del universo.",
+"El destino decidió escribir algo distinto esa noche.",
+"Había una historia esperando nacer.",
+"El tiempo se detuvo por un instante."
+])}
+
+${pick([
+"El aire estaba lleno de promesas.",
+"El cielo parecía observar en silencio.",
+"El mundo respiraba suavemente.",
+"Las estrellas brillaban con intención."
+])}
+`;
+
+let cap2 = `
+Capítulo II – El Encuentro
+
+${pick([
+"En medio del escenario elegido, apareció Naomi.",
+"Allí, entre luces suaves, caminaba Naomi.",
+"Fue entonces cuando ella apareció.",
+"Y como si el universo lo supiera, Naomi llegó."
+])}
+
+${pick([
+"Sus ojos reflejaban mundos enteros.",
+"Su sonrisa cambiaba la atmósfera.",
+"Su presencia transformaba todo.",
+"Su energía iluminaba cada rincón."
+])}
+
+${pick([
+"Nada volvió a ser igual desde ese momento.",
+"El silencio se convirtió en música.",
+"El mundo pareció entender algo profundo.",
+"El destino tomó un nuevo rumbo."
+])}
+`;
+
+let cap3 = `
+Capítulo III – Lo Que Se Descubre
+
+${pick([
+"Con el paso del tiempo, comprendió algo esencial.",
+"Cada latido traía una revelación.",
+"Entre momentos simples nació algo eterno.",
+"Los días comenzaron a tener otro significado."
+])}
+
+Nuestro amor es ${answers.love}.
+No es casualidad.
+No es pasajero.
+Es una historia que se construye cada día.
+Es un refugio.
+Es una promesa silenciosa.
+Es algo que el universo protege.
+`;
+
+let cap4 = `
+Capítulo IV – Lo Infinito
+
+${pick([
+"Y así continúa nuestra historia.",
+"Desde entonces seguimos escribiendo capítulos.",
+"Cada día es una nueva página.",
+"El libro aún tiene muchas páginas por llenar."
+])}
+
+Porque cuando dos almas se encuentran así,
+el tiempo no importa,
+la distancia no asusta,
+y el amor siempre encuentra su camino.
+
+Fin… por ahora 💖
+`;
+
+currentStory = `${cap1}\n${cap2}\n${cap3}\n${cap4}`;
+
+saveStory(currentStory);
+
 content.innerHTML=`
-<p class="fade text-lg">Antes de empezar...</p>
-<p>¿Quieres escuchar un cuento mágico? ✨</p>
-<div class="flex justify-center gap-4 mt-4">
-<button onclick="next()" class="bg-green-500 px-4 py-2 rounded-xl hover:scale-110 transition">Sí 💖</button>
-<button onclick="alert('Respuesta incorrecta 😌💖')" class="bg-red-500 px-4 py-2 rounded-xl">No 😳</button>
+<div class="scroll text-left whitespace-pre-line text-pink-200 leading-relaxed page">
+${currentStory}
+</div>
+
+<div class="flex flex-wrap justify-center gap-4 mt-6">
+<button onclick="exportPDF()" class="bg-green-500 px-4 py-2 rounded-xl hover:scale-110 transition">
+Exportar PDF 🖨️
+</button>
+
+<button onclick="viewSaved()" class="bg-blue-500 px-4 py-2 rounded-xl hover:scale-110 transition">
+Ver cuentos guardados 💾
+</button>
+
+<button onclick="location.reload()" class="bg-pink-500 px-4 py-2 rounded-xl hover:scale-110 transition">
+Crear otro 📖
+</button>
 </div>
 `;
 }
 
-else if(step===2){
-let story=generateStory();
+/* =================== GUARDADO =================== */
+
+function saveStory(story){
+let stories=JSON.parse(localStorage.getItem("naomiStories"))||[];
+stories.push(story);
+localStorage.setItem("naomiStories",JSON.stringify(stories));
+}
+
+function viewSaved(){
+let stories=JSON.parse(localStorage.getItem("naomiStories"))||[];
+if(stories.length===0){
+alert("Aún no hay cuentos guardados 💖");
+return;
+}
 content.innerHTML=`
-<p class="fade text-pink-300">${story}</p>
-<button onclick="newStory()" class="bg-pink-500 px-4 py-2 rounded-xl mt-4 hover:scale-110 transition">
-Otro cuento 💌
-</button>
-<button onclick="next()" class="bg-purple-500 px-4 py-2 rounded-xl mt-2 hover:scale-110 transition">
-Seguir 🌙
+<div class="scroll text-left whitespace-pre-line text-pink-200">
+${stories.join("\n\n------------------------\n\n")}
+</div>
+<button onclick="location.reload()" 
+class="bg-pink-500 mt-6 px-4 py-2 rounded-xl">
+Volver
 </button>
 `;
 }
 
-else if(step===3){
-content.innerHTML=`
-<p class="fade text-xl">Mi princesa Naomi...</p>
-<p>Tus ojos iluminan mi mundo 🌟</p>
-<p>Tu sonrisa es mi lugar seguro 💖</p>
-<p>Y cada día contigo es mi cuento favorito 📖</p>
-<p class="mt-4 text-pink-400 animate-pulse">
-Feliz San Valentín mi niña hermosa 💞
-</p>
-`;
-}
-}
+/* =================== PDF =================== */
 
-function newStory(){
-document.querySelector("#content p").innerText=generateStory();
+async function exportPDF(){
+const { jsPDF } = window.jspdf;
+let doc = new jsPDF();
+doc.text(currentStory,10,10,{maxWidth:180});
+doc.save("Cuento_Naomi.pdf");
 }
 
 </script>
-
 </body>
 </html>
