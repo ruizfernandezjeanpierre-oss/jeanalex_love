@@ -16,7 +16,7 @@ display:block;
 margin:0 auto;
 image-rendering:pixelated;
 }
-#startScreen{
+#startScreen,#finalScreen{
 position:fixed;
 inset:0;
 display:flex;
@@ -27,11 +27,28 @@ background:radial-gradient(circle,#1e3a8a,#000);
 color:white;
 z-index:10;
 }
-button{
-background:#ec4899;
-padding:12px 24px;
-border-radius:30px;
-font-weight:bold;
+#finalScreen{display:none;}
+.rpg-ui{
+position:fixed;
+top:10px;
+left:10px;
+background:rgba(0,0,0,0.6);
+padding:10px 20px;
+border:2px solid #ec4899;
+border-radius:12px;
+color:white;
+}
+.messageBox{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:rgba(0,0,0,0.8);
+padding:15px 25px;
+border:2px solid pink;
+border-radius:10px;
+color:white;
+display:none;
 }
 </style>
 </head>
@@ -40,10 +57,25 @@ font-weight:bold;
 <div id="startScreen">
 <h1 class="text-4xl mb-4">👑 El Reino de Naomi 👑</h1>
 <p class="mb-6">Una aventura para mi princesa 💖</p>
-<button onclick="startGame()">Comenzar</button>
+<button onclick="startGame()" class="bg-pink-500 px-6 py-3 rounded-full">Comenzar</button>
 </div>
 
+<div id="finalScreen">
+<h1 class="text-4xl mb-6">Naomi... 💖</h1>
+<p class="text-xl mb-6">¿Te casarías conmigo? 💍</p>
+<p class="mt-4 text-sm opacity-80">Eres mi niña, mi princesa, mi amorcita para siempre.</p>
+</div>
+
+<div class="rpg-ui">
+❤️ Vida: <span id="vida">5</span>
+</div>
+
+<div id="messageBox" class="messageBox"></div>
+
 <canvas id="game"></canvas>
+
+<audio id="musicGame" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8f3fef8c5.mp3"></audio>
+<audio id="musicFinal" loop src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_3e7a8d28a1.mp3"></audio>
 
 <script>
 
@@ -57,72 +89,94 @@ canvas.height=window.innerHeight;
 resize();
 window.addEventListener("resize",resize);
 
-/* 🌌 Estrellas fondo */
-let stars=[];
-for(let i=0;i<200;i++){
-stars.push({
-x:Math.random()*2000,
-y:Math.random()*2000,
-size:Math.random()*2
+/* ⭐ Partículas mágicas */
+let particles=[];
+function createParticles(x,y){
+for(let i=0;i<15;i++){
+particles.push({
+x,y,
+vx:(Math.random()-0.5)*4,
+vy:(Math.random()-0.5)*4,
+life:30
 });
 }
+}
 
-/* 👑 Player */
-let player={
-x:300,
-y:300,
-size:40,
-speed:5
-};
+/* 💖 Corazones flotando */
+setInterval(()=>{
+let heart=document.createElement("div");
+heart.innerHTML="💖";
+heart.style.position="fixed";
+heart.style.left=Math.random()*100+"%";
+heart.style.top="100%";
+heart.style.fontSize="20px";
+heart.style.animation="float 4s linear";
+document.body.appendChild(heart);
+setTimeout(()=>heart.remove(),4000);
+},2000);
 
+/* Player */
+let player={x:300,y:300,size:40,speed:5};
 let camera={x:0,y:0};
-
 let keys={};
+let vida=5;
+let interactCooldown=0;
+
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
-/* 👤 Enemigos */
-let enemies=[
-{x:600,y:500},
-{x:900,y:700}
-];
-
-/* 🏰 Castillo */
-let castle={x:1500,y:900};
+let enemies=[{x:600,y:500},{x:900,y:700}];
+let castle={x:1400,y:900};
 
 function startGame(){
 document.getElementById("startScreen").style.display="none";
-requestAnimationFrame(gameLoop);
+document.getElementById("musicGame").play();
+requestAnimationFrame(loop);
 }
 
-function gameLoop(){
+function loop(){
 update();
 draw();
-requestAnimationFrame(gameLoop);
+requestAnimationFrame(loop);
 }
 
 function update(){
+
+if(interactCooldown>0) interactCooldown--;
 
 if(keys["ArrowLeft"])player.x-=player.speed;
 if(keys["ArrowRight"])player.x+=player.speed;
 if(keys["ArrowUp"])player.y-=player.speed;
 if(keys["ArrowDown"])player.y+=player.speed;
 
-/* Cámara centrada */
 camera.x=player.x-canvas.width/2;
 camera.y=player.y-canvas.height/2;
 
-/* Colisión enemigos */
+/* Enemigos */
 enemies.forEach(e=>{
 if(Math.abs(player.x-e.x)<40 && Math.abs(player.y-e.y)<40){
-alert("Tu luz es más fuerte que cualquier sombra 💖");
+if(interactCooldown===0){
+vida--;
+document.getElementById("vida").innerText=vida;
+showMessage("Tu luz es más fuerte que cualquier sombra 💖");
+createParticles(player.x,player.y);
+interactCooldown=60;
+}
 }
 });
 
 /* Castillo */
 if(Math.abs(player.x-castle.x)<60 && Math.abs(player.y-castle.y)<60){
-final();
+endGame();
 }
+
+/* Partículas update */
+particles.forEach(p=>{
+p.x+=p.vx;
+p.y+=p.vy;
+p.life--;
+});
+particles=particles.filter(p=>p.life>0);
 
 }
 
@@ -135,56 +189,48 @@ ctx.fillRect(0,0,canvas.width,canvas.height);
 
 /* Estrellas */
 ctx.fillStyle="white";
-stars.forEach(s=>{
-ctx.fillRect(
-s.x-camera.x,
-s.y-camera.y,
-s.size,
-s.size
-);
-});
+for(let i=0;i<100;i++){
+ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,1,1);
+}
 
-/* Jugador (princesa pixel simple) */
+/* Jugador */
 ctx.fillStyle="#ff69b4";
-ctx.fillRect(
-player.x-camera.x,
-player.y-camera.y,
-player.size,
-player.size
-);
+ctx.fillRect(player.x-camera.x,player.y-camera.y,player.size,player.size);
 
 /* Corona */
 ctx.fillStyle="gold";
-ctx.fillRect(
-player.x-camera.x+10,
-player.y-camera.y-10,
-20,
-10
-);
+ctx.fillRect(player.x-camera.x+10,player.y-camera.y-10,20,10);
 
 /* Enemigos */
 ctx.fillStyle="black";
 enemies.forEach(e=>{
-ctx.fillRect(
-e.x-camera.x,
-e.y-camera.y,
-40,
-40
-);
+ctx.fillRect(e.x-camera.x,e.y-camera.y,40,40);
 });
 
-/* Castillo */
-ctx.fillStyle="purple";
-ctx.fillRect(
-castle.x-camera.x,
-castle.y-camera.y,
-80,
-80
-);
+/* Castillo ilustrado */
+ctx.fillStyle="#7e22ce";
+ctx.fillRect(castle.x-camera.x,castle.y-camera.y,120,120);
+ctx.fillStyle="pink";
+ctx.fillRect(castle.x-camera.x+40,castle.y-camera.y-40,40,40);
+
+/* Partículas */
+particles.forEach(p=>{
+ctx.fillStyle="pink";
+ctx.fillRect(p.x-camera.x,p.y-camera.y,4,4);
+});
 }
 
-function final(){
-alert("Naomi… 💖\n\nHas llegado al castillo.\n\nMi princesa...\n¿Te casarías conmigo? 💍");
+function showMessage(text){
+let box=document.getElementById("messageBox");
+box.innerText=text;
+box.style.display="block";
+setTimeout(()=>box.style.display="none",2000);
+}
+
+function endGame(){
+document.getElementById("musicGame").pause();
+document.getElementById("musicFinal").play();
+document.getElementById("finalScreen").style.display="flex";
 }
 
 </script>
