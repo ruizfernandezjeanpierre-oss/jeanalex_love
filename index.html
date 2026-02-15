@@ -5,22 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>El Libro Infinito de Naomi 💖</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
 body{
 background: radial-gradient(circle at top,#1e1b4b,#0f172a);
 overflow:hidden;
 }
-.page{
-animation: pageTurn 0.8s ease;
+.fade{
+animation:fadeIn 1s ease-in-out;
 }
-@keyframes pageTurn{
-from{transform: rotateY(-15deg); opacity:0;}
-to{transform: rotateY(0); opacity:1;}
+@keyframes fadeIn{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1; transform:translateY(0);}
 }
 .scroll{
-max-height:55vh;
+max-height:60vh;
 overflow-y:auto;
 }
 </style>
@@ -28,69 +26,71 @@ overflow-y:auto;
 
 <body class="flex items-center justify-center min-h-screen text-white p-4">
 
-<div class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-3xl w-full text-center">
+<div class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-2xl w-full text-center">
 
-<h1 class="text-3xl text-pink-400 mb-6">
+<h1 class="text-3xl md:text-4xl text-pink-400 mb-6">
 📖 El Libro Infinito de Naomi
 </h1>
 
-<div id="content" class="space-y-4 page"></div>
+<div id="content" class="space-y-4 fade">
+
+<p>Este libro escribe historias según tu corazón 💖</p>
+<button onclick="next()" 
+class="bg-pink-500 px-6 py-3 rounded-xl hover:scale-110 transition">
+Comenzar ✨
+</button>
 
 </div>
 
-<!-- 🎵 Música -->
-<audio id="musicFeliz" loop src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8f3fef8c5.mp3"></audio>
-<audio id="musicSonadora" loop src="https://cdn.pixabay.com/audio/2022/10/25/audio_3e7a8d28a1.mp3"></audio>
-<audio id="musicTranquila" loop src="https://cdn.pixabay.com/audio/2022/11/03/audio_7f6a3e.mp3"></audio>
-<audio id="musicNostalgica" loop src="https://cdn.pixabay.com/audio/2022/08/04/audio_2c2f63.mp3"></audio>
+</div>
 
 <script>
 
-const content=document.getElementById("content");
 let step=0;
 let answers={};
-let currentStory="";
-
-/* =================== INICIO =================== */
-
-content.innerHTML=`
-<p>Este libro escribe historias según tu corazón 💖</p>
-<button onclick="next()" class="bg-pink-500 px-6 py-3 rounded-xl hover:scale-110 transition">
-Comenzar ✨
-</button>
-`;
-
-/* =================== FLUJO =================== */
 
 function next(){
 step++;
-content.classList.add("page");
+const c=document.getElementById("content");
 
-if(step===1) ask("¿Cómo te sientes hoy?",
-["feliz","soñadora","tranquila","nostalgica"],
+if(step===1){
+c.innerHTML=question("¿Cómo te sientes hoy?",
+["feliz 🌸","soñadora ✨","tranquila 🌙","nostalgica 💭"],
 "mood");
-
-else if(step===2) ask("¿Qué escenario prefieres?",
-["estrellas","flores","mar","lluvia"],
-"place");
-
-else if(step===3) ask("¿Cómo es nuestro amor?",
-["eterno","intenso","dulce","magico"],
-"love");
-
-else if(step===4) generateStory();
 }
 
-function ask(text,options,key){
+else if(step===2){
+c.innerHTML=question("¿Qué escenario te gusta más?",
+["estrellas 🌌","flores 🌷","mar 🌊","lluvia 🌧"],
+"place");
+}
+
+else if(step===3){
+c.innerHTML=question("¿Cómo describirías nuestro amor?",
+["eterno 💞","intenso 🔥","dulce 🍓","magico ✨"],
+"love");
+}
+
+else if(step===4){
+c.innerHTML=question("En el cuento tú eres...",
+["princesa 👑","viajera 🌍","maga 🔮","soñadora 🌙"],
+"role");
+}
+
+else if(step===5){
+generateStory();
+}
+
+}
+
+function question(text,options,key){
 let html=`<p>${text}</p><div class="grid gap-3 mt-4">`;
-options.forEach(o=>{
-html+=`<button onclick="save('${key}','${o}')" 
-class="bg-purple-500 p-2 rounded-xl hover:scale-110 transition">
-${o}
-</button>`;
+options.forEach(opt=>{
+html+=`<button onclick="save('${key}','${opt.split(' ')[0]}')" 
+class="bg-purple-500 p-2 rounded-xl hover:scale-110 transition">${opt}</button>`;
 });
 html+="</div>";
-content.innerHTML=html;
+return html;
 }
 
 function save(key,val){
@@ -98,165 +98,137 @@ answers[key]=val;
 next();
 }
 
-/* =================== MÚSICA =================== */
-
-function playMusic(){
-document.querySelectorAll("audio").forEach(a=>a.pause());
-if(answers.mood==="feliz") musicFeliz.play();
-if(answers.mood==="soñadora") musicSonadora.play();
-if(answers.mood==="tranquila") musicTranquila.play();
-if(answers.mood==="nostalgica") musicNostalgica.play();
-}
-
-/* =================== GENERADOR =================== */
-
 function pick(arr){
 return arr[Math.floor(Math.random()*arr.length)];
 }
 
 function generateStory(){
 
-playMusic();
+let intro=[
+"Hubo una vez una historia que no comenzó con palabras, sino con un latido.",
+"Todo empezó en un instante silencioso donde el universo parecía observar.",
+"En un rincón secreto del destino nació un relato diferente a todos.",
+"El tiempo decidió detenerse para escribir algo especial."
+];
 
-let cap1 = `
-Capítulo I – El Inicio
+let mood={
+feliz:[
+"El mundo parecía celebrar contigo.",
+"La luz del día tenía tu misma sonrisa.",
+"Cada rincón brillaba con alegría.",
+"El aire se sentía ligero y lleno de esperanza."
+],
+soñadora:[
+"El cielo parecía un lienzo abierto a posibilidades.",
+"Todo tenía un tono mágico e incierto.",
+"Las estrellas parecían hablar en secreto.",
+"El universo susurraba promesas invisibles."
+],
+tranquila:[
+"El silencio era suave y reconfortante.",
+"El tiempo caminaba despacio.",
+"Había paz en cada respiración.",
+"Todo parecía estar exactamente donde debía."
+],
+nostalgica:[
+"Los recuerdos flotaban suavemente en el aire.",
+"Había ecos del pasado brillando en la distancia.",
+"El cielo parecía guardar memorias antiguas.",
+"Una dulce melancolía acompañaba cada pensamiento."
+]
+};
 
-${pick([
-"Todo comenzó con un suspiro del universo.",
-"El destino decidió escribir algo distinto esa noche.",
-"Había una historia esperando nacer.",
-"El tiempo se detuvo por un instante."
-])}
+let place={
+estrellas:[
+"Bajo un cielo infinito lleno de estrellas luminosas,",
+"En medio de constelaciones que parecían dibujar tu nombre,",
+"Rodeada por luces que titilaban como secretos,",
+"Entre galaxias que parecían latir lentamente,"
+],
+flores:[
+"Entre jardines de flores eternas,",
+"En un campo donde cada pétalo parecía sonreír,",
+"Rodeada de aromas suaves y colores vivos,",
+"En un valle cubierto de primavera constante,"
+],
+mar:[
+"Frente a un mar que susurraba historias antiguas,",
+"A la orilla de olas que acariciaban la arena,",
+"Donde el horizonte parecía infinito,",
+"Con el sonido del agua como música eterna,"
+],
+lluvia:[
+"Bajo una lluvia suave que abrazaba la piel,",
+"En un momento donde las gotas parecían bendiciones,",
+"Con el cielo gris como fondo poético,",
+"Mientras el mundo se limpiaba en silencio,"
+]
+};
 
-${pick([
-"El aire estaba lleno de promesas.",
-"El cielo parecía observar en silencio.",
-"El mundo respiraba suavemente.",
-"Las estrellas brillaban con intención."
-])}
+let role={
+princesa:"Naomi, la princesa de mirada brillante,",
+viajera:"Naomi, la viajera de espíritu valiente,",
+maga:"Naomi, la maga que transformaba sombras en luz,",
+soñadora:"Naomi, la soñadora que veía magia en lo invisible,"
+};
+
+let love={
+eterno:"descubrió que nuestro amor no conoce límites ni tiempo.",
+intenso:"sintió que nuestro amor ardía más fuerte que cualquier estrella.",
+dulce:"entendió que nuestro amor era un refugio suave y seguro.",
+magico:"comprendió que nuestro amor era el hechizo más poderoso jamás creado."
+};
+
+let ending=[
+"Desde entonces, cada día juntos se convirtió en un nuevo capítulo lleno de ternura.",
+"Y así, el universo continuó escribiendo nuestra historia sin final.",
+"Porque cuando dos almas se encuentran así, nada puede separarlas.",
+"Y cada latido recuerda que esta historia apenas comienza."
+];
+
+let story = `
+${pick(intro)}
+${pick(mood[answers.mood])}
+${pick(place[answers.place])}
+${role[answers.role]}
+caminaba con una fuerza invisible que iluminaba todo a su alrededor.
+Había algo en su mirada que cambiaba el destino.
+Cada paso que daba parecía sembrar esperanza.
+Incluso las sombras se rendían ante su luz.
+El viento parecía acompañarla suavemente.
+Los suspiros del mundo parecían seguir su ritmo.
+Nada era casualidad.
+Nada era pequeño.
+Porque su existencia tenía propósito.
+En su corazón guardaba algo puro.
+Algo que no se rompe.
+Algo que no desaparece.
+Fue entonces cuando entendió algo profundo.
+${love[answers.love]}
+No era solo una historia.
+Era un viaje compartido.
+Era un aprendizaje constante.
+Era la prueba de que el amor verdadero existe.
+Y mientras el mundo giraba,
+mientras el cielo cambiaba,
+mientras el tiempo avanzaba,
+ella sabía que no estaba sola.
+${pick(ending)}
 `;
 
-let cap2 = `
-Capítulo II – El Encuentro
-
-${pick([
-"En medio del escenario elegido, apareció Naomi.",
-"Allí, entre luces suaves, caminaba Naomi.",
-"Fue entonces cuando ella apareció.",
-"Y como si el universo lo supiera, Naomi llegó."
-])}
-
-${pick([
-"Sus ojos reflejaban mundos enteros.",
-"Su sonrisa cambiaba la atmósfera.",
-"Su presencia transformaba todo.",
-"Su energía iluminaba cada rincón."
-])}
-
-${pick([
-"Nada volvió a ser igual desde ese momento.",
-"El silencio se convirtió en música.",
-"El mundo pareció entender algo profundo.",
-"El destino tomó un nuevo rumbo."
-])}
-`;
-
-let cap3 = `
-Capítulo III – Lo Que Se Descubre
-
-${pick([
-"Con el paso del tiempo, comprendió algo esencial.",
-"Cada latido traía una revelación.",
-"Entre momentos simples nació algo eterno.",
-"Los días comenzaron a tener otro significado."
-])}
-
-Nuestro amor es ${answers.love}.
-No es casualidad.
-No es pasajero.
-Es una historia que se construye cada día.
-Es un refugio.
-Es una promesa silenciosa.
-Es algo que el universo protege.
-`;
-
-let cap4 = `
-Capítulo IV – Lo Infinito
-
-${pick([
-"Y así continúa nuestra historia.",
-"Desde entonces seguimos escribiendo capítulos.",
-"Cada día es una nueva página.",
-"El libro aún tiene muchas páginas por llenar."
-])}
-
-Porque cuando dos almas se encuentran así,
-el tiempo no importa,
-la distancia no asusta,
-y el amor siempre encuentra su camino.
-
-Fin… por ahora 💖
-`;
-
-currentStory = `${cap1}\n${cap2}\n${cap3}\n${cap4}`;
-
-saveStory(currentStory);
-
-content.innerHTML=`
-<div class="scroll text-left whitespace-pre-line text-pink-200 leading-relaxed page">
-${currentStory}
-</div>
-
-<div class="flex flex-wrap justify-center gap-4 mt-6">
-<button onclick="exportPDF()" class="bg-green-500 px-4 py-2 rounded-xl hover:scale-110 transition">
-Exportar PDF 🖨️
-</button>
-
-<button onclick="viewSaved()" class="bg-blue-500 px-4 py-2 rounded-xl hover:scale-110 transition">
-Ver cuentos guardados 💾
-</button>
-
-<button onclick="location.reload()" class="bg-pink-500 px-4 py-2 rounded-xl hover:scale-110 transition">
-Crear otro 📖
-</button>
-</div>
-`;
-}
-
-/* =================== GUARDADO =================== */
-
-function saveStory(story){
-let stories=JSON.parse(localStorage.getItem("naomiStories"))||[];
-stories.push(story);
-localStorage.setItem("naomiStories",JSON.stringify(stories));
-}
-
-function viewSaved(){
-let stories=JSON.parse(localStorage.getItem("naomiStories"))||[];
-if(stories.length===0){
-alert("Aún no hay cuentos guardados 💖");
-return;
-}
-content.innerHTML=`
-<div class="scroll text-left whitespace-pre-line text-pink-200">
-${stories.join("\n\n------------------------\n\n")}
+document.getElementById("content").innerHTML=`
+<div class="scroll fade text-left text-pink-200 whitespace-pre-line leading-relaxed">
+${story}
 </div>
 <button onclick="location.reload()" 
-class="bg-pink-500 mt-6 px-4 py-2 rounded-xl">
-Volver
+class="bg-pink-500 mt-6 px-4 py-2 rounded-xl hover:scale-110 transition">
+Crear otro cuento 💌
 </button>
 `;
-}
 
-/* =================== PDF =================== */
-
-async function exportPDF(){
-const { jsPDF } = window.jspdf;
-let doc = new jsPDF();
-doc.text(currentStory,10,10,{maxWidth:180});
-doc.save("Cuento_Naomi.pdf");
 }
 
 </script>
+
 </body>
 </html>
